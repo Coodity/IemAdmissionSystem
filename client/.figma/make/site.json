@@ -1,0 +1,10 @@
+{
+  "description": "Creates interactive grayscale wireframe prototypes with linked pages to visualize and test user flows for designers and developers.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
