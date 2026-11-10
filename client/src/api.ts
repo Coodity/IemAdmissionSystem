@@ -1,4 +1,4 @@
-// put this at src/api.ts in the frontend
+// replaces client/src/api.ts
 const BASE = 'http://localhost:5000/api';
 
 export async function api(path: string, method = 'GET', body?: unknown) {
@@ -14,6 +14,23 @@ export async function api(path: string, method = 'GET', body?: unknown) {
   const data = await res.json();
   if (!res.ok) {
     throw new Error(data.error || 'Request failed');
+  }
+  return data;
+}
+
+// file upload: no Content-Type header, the browser sets the multipart boundary itself
+export async function apiUpload(path: string, file: File) {
+  const token = localStorage.getItem('token');
+  const form = new FormData();
+  form.append('file', file);
+  const res = await fetch(BASE + path, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: form,
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || 'Upload failed');
   }
   return data;
 }

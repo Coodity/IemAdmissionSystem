@@ -5,6 +5,10 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
 import multer from 'multer';
+import path from 'node:path';
+
+import dns from 'node:dns';
+dns.setServers(['1.1.1.1', '1.0.0.1']);
 
 const app = express();
 app.use(cors());
@@ -29,6 +33,7 @@ const Application = mongoose.model('Application', new mongoose.Schema({
   docs: [{
     label: String,
     fileName: String,
+    mimeType: String,
     status: { type: String, enum: ['Pending', 'Verified', 'Rejected'], default: 'Pending' },
     reason: String,
   }],
@@ -143,7 +148,8 @@ app.post('/api/applications/:id/docs/:index', auth(['applicant']), upload.single
   if (!slot || !req.file) {
     return res.status(400).json({ error: 'Bad document slot or file' });
   }
-  slot.fileName = req.file.filename;
+   slot.fileName = req.file.filename;
+  slot.mimeType = req.file.mimetype;
   slot.status = 'Pending'; // re-upload after rejection resets it (FR-16)
   slot.reason = '';
   await doc.save();
@@ -209,6 +215,16 @@ app.patch('/api/officer/applications/:id/decision', staff, async (req, res) => {
   await doc.save();
   notify(doc, `your application was ${decision.toLowerCase()}`); // FR-30
   res.json(doc);
+});
+
+app.get('/api/officer/files/:name', staff, async (req, res) => {
+  const found = await Application.findOne({ 'docs.fileName': req.params.name });
+  if (!found) {
+    return res.status(404).json({ error: 'File not found' });
+  }
+  const slot = found.docs.find(d => d.fileName === req.params.name);
+  res.type(slot.mimeType || 'application/octet-stream');
+  res.sendFile(path.resolve('uploads', path.basename(req.params.name)));
 });
 
 // ---------- Boot ----------
