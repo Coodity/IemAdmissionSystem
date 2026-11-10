@@ -104,7 +104,7 @@ export default function Login() {
               <button className="hover:underline">Forgot password?</button>
               <span>
                 New applicant?{' '}
-                <button onClick={() => navigate('/apply')} className="font-medium hover:underline">Register</button>
+                <button onClick={() => navigate('/register')} className="font-medium hover:underline">Register</button>
               </span>
             </div>
 
